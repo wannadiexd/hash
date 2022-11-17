@@ -2,7 +2,7 @@
 
 The purpose of this exercise is to describe, create, and use hash tables that are built according to special rules.  
 
-Duration - **60 minutes**  
+Duration - **1 hour**  
 
 
 ## Description
