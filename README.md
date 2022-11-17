@@ -2,7 +2,7 @@
 
 The purpose of this exercise is to describe, create, and use hash tables that are built according to special rules.  
 
-Duration: _60 minutes_  
+Duration - **60 minutes**  
 
 
 ## Description
@@ -32,7 +32,7 @@ Please proceed to the `HashtableOpen8to16Impl` class, which implements the `Hash
 * Note that in the case of 2 buckets and 1 element, removing that element leads to a size of 0. In this case, there is no reduction in capacity, so the minimum capacity of the implementation is effectively 2.
 
 
-### Restrictions
+## Restrictions
 You may not:  
 * Use any type from the `java.util` package or its subpackages, except for the `java.util.Iterator`
 * Use lambdas or streams when implementing this task
