@@ -23,120 +23,80 @@ public class HashtableOpen8to16Impl implements HashtableOpen8to16 {
     private int capacity;
 
     public HashtableOpen8to16Impl() {
-        this.capacity = INITIAL_CAPACITY;
+        this.keys = new int[INIT_CAPACITY];
+        this.values = new Object[INIT_CAPACITY];
         this.size = 0;
-        this.keys = new int[capacity];
-        this.values = new Object[capacity];
+        this.capacity = INIT_CAPACITY;
     }
 
     @Override
     public void insert(int key, Object value) {
-        if (size == capacity) {
-            if (capacity == MAX_CAPACITY) {
-                throw new IllegalStateException("Maximum capacity reached");
-            }
-            resize();
+        if(capacity == MAX_CAPACITY ) throw new IllegalStateException();
+        resizeAndRehash(2 * capacity);
+    }
+    int index = findIndex(key, capacity, keys);
+    keys[index] = key;
+    values[index] = value;
+    size++;
+}
+
+private boolean containsKey(int[] keys, int key) {
+        for (int tempKey: keys) {
+            if(tempKey == key) return true;
         }
-        int index = getIndex(key);
-        while (keys[index] != 0 && keys[index] != key) {
-            index = (index + 1) % capacity;
-        }
-        keys[index] = key;
-        values[index] = value;
-        size++;
+        return false;
     }
 
-    @Override
-    public Object search(int key) {
-        int index = getIndex(key);
-        while (keys[index] != 0) {
-            if (keys[index] == key) {
-                return values[index];
+    private void resizeAndRehash(int resizeFactor) {
+        int newCapacity = Math.min(resizeFactor, MAX_CAPACITY);
+        int[] newKeys = new int[newCapacity];
+        Object[] newValues = new Object[newCapacity];
+
+        for (int i = 0; i < capacity; i++) {
+            if (keys[i] != 0) {
+                int newIndex = findIndex(keys[i], newCapacity, newKeys);
+                newKeys[newIndex] = keys[i];
+                newValues[newIndex] = values[i];
             }
+        }
+
+        keys = newKeys;
+        values = newValues;
+        capacity = newCapacity;
+    }
+    private int findIndex(int key, int capacity, int[] array) {
+        int index = Math.abs(key) % capacity;
+        while (array[index] != key && array[index] != 0) {
             index = (index + 1) % capacity;
         }
-        return null;
+        return index;
+    }
+    @Override
+    public Object search(int key) {
+        int index = findIndex(key, capacity, keys);
+        return values[index];
     }
 
     @Override
     public void remove(int key) {
-        int index = getIndex(key);
-        while (keys[index] != 0) {
-            if (keys[index] == key) {
-                keys[index] = 0;
-                values[index] = null;
-                size--;
-                resizeIfNeeded();
-                return;
+        int index = findIndex(key, capacity, keys);
+        if (keys[index] == key) {
+            keys[index] = 0;
+            values[index] = null;
+            size--;
+            if (size > 0 && size <= capacity * LOAD_FACTOR) {
+                resizeAndRehash(capacity / 2);
             }
-            index = (index + 1) % capacity;
         }
     }
 
     @Override
     public int size() {
-        return size;
+        return this.size;
     }
 
     @Override
     public int[] keys() {
-        int[] allKeys = new int[size];
-        int index = 0;
-        for (int key : keys) {
-            if (key != 0) {
-                allKeys[index++] = key;
-            }
-        }
-        return allKeys;
-    }
-
-    private void resize() {
-        int newCapacity = capacity * 2;
-        int[] newKeys = new int[newCapacity];
-        Object[] newValues = new Object[newCapacity];
-        for (int i = 0; i < capacity; i++) {
-            if (keys[i] != 0) {
-                int newIndex = getIndex(keys[i], newCapacity);
-                while (newKeys[newIndex] != 0) {
-                    newIndex = (newIndex + 1) % newCapacity;
-                }
-                newKeys[newIndex] = keys[i];
-                newValues[newIndex] = values[i];
-            }
-        }
-        keys = newKeys;
-        values = newValues;
-        capacity = newCapacity;
-    }
-
-    private void resizeIfNeeded() {
-        if (size != 0 && size * 4 <= capacity) {
-            int newCapacity = Math.max(INITIAL_CAPACITY, capacity / 2);
-            if (newCapacity != capacity) {
-                int[] newKeys = new int[newCapacity];
-                Object[] newValues = new Object[newCapacity];
-                for (int i = 0; i < capacity; i++) {
-                    if (keys[i] != 0) {
-                        int newIndex = getIndex(keys[i], newCapacity);
-                        while (newKeys[newIndex] != 0) {
-                            newIndex = (newIndex + 1) % newCapacity;
-                        }
-                        newKeys[newIndex] = keys[i];
-                        newValues[newIndex] = values[i];
-                    }
-                }
-                keys = newKeys;
-                values = newValues;
-                capacity = newCapacity;
-            }
-        }
-    }
-
-    private int getIndex(int key) {
-        return getIndex(key, capacity);
-    }
-
-    private int getIndex(int key, int tableSize) {
-        return Math.abs(key) % tableSize;
+        return keys;
     }
 }
