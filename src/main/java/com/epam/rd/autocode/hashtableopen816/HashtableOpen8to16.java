@@ -23,28 +23,22 @@ public class HashtableOpen8to16Impl implements HashtableOpen8to16 {
     private int capacity;
 
     public HashtableOpen8to16Impl() {
-        this.keys = new int[INIT_CAPACITY];
-        this.values = new Object[INIT_CAPACITY];
+        this.keys = new int[INITIAL_CAPACITY];
+        this.values = new Object[INITIAL_CAPACITY];
         this.size = 0;
-        this.capacity = INIT_CAPACITY;
+        this.capacity = INITIAL_CAPACITY;
     }
 
     @Override
     public void insert(int key, Object value) {
-        if(capacity == MAX_CAPACITY ) throw new IllegalStateException();
-        resizeAndRehash(2 * capacity);
-    }
-    int index = findIndex(key, capacity, keys);
-    keys[index] = key;
-    values[index] = value;
-    size++;
-}
-
-private boolean containsKey(int[] keys, int key) {
-        for (int tempKey: keys) {
-            if(tempKey == key) return true;
+        if (capacity == MAX_CAPACITY) throw new IllegalStateException();
+        int index = findIndex(key, capacity, keys);
+        keys[index] = key;
+        values[index] = value;
+        size++;
+        if (size > capacity * LOAD_FACTOR) {
+            resizeAndRehash(2 * capacity);
         }
-        return false;
     }
 
     private void resizeAndRehash(int resizeFactor) {
@@ -64,6 +58,7 @@ private boolean containsKey(int[] keys, int key) {
         values = newValues;
         capacity = newCapacity;
     }
+
     private int findIndex(int key, int capacity, int[] array) {
         int index = Math.abs(key) % capacity;
         while (array[index] != key && array[index] != 0) {
@@ -71,6 +66,7 @@ private boolean containsKey(int[] keys, int key) {
         }
         return index;
     }
+
     @Override
     public Object search(int key) {
         int index = findIndex(key, capacity, keys);
