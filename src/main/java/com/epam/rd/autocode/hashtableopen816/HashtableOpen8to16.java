@@ -12,7 +12,7 @@ public interface HashtableOpen8to16 {
     }
 }
 
-public class HashtableOpen8to16Impl implements HashtableOpen8to16 {
+class HashtableOpen8to16Impl implements HashtableOpen8to16 {
     private static final int INITIAL_CAPACITY = 8;
     private static final int MAX_CAPACITY = 16;
     private static final double LOAD_FACTOR = 0.25;
