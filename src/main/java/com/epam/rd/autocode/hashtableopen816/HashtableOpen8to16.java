@@ -1,61 +1,54 @@
 package com.epam.rd.autocode.hashtableopen816;
 
-import java.util.Arrays;
-
 public class HashtableOpen8to16Impl implements HashtableOpen8to16 {
     private static final int INITIAL_CAPACITY = 8;
     private static final int MAX_CAPACITY = 16;
-    private static final double LOAD_FACTOR_THRESHOLD = 0.25;
-
-    private int capacity;
+    private Entry[] table;
     private int size;
-    private int[] keys;
-    private Object[] values;
 
     public HashtableOpen8to16Impl() {
-        this.capacity = INITIAL_CAPACITY;
-        this.size = 0;
-        this.keys = new int[capacity];
-        this.values = new Object[capacity];
+        table = new Entry[INITIAL_CAPACITY];
+        size = 0;
     }
 
     @Override
     public void insert(int key, Object value) {
-        if (size == capacity) {
-            if (capacity == MAX_CAPACITY) {
-                throw new IllegalStateException("Hashtable capacity reached maximum limit");
-            }
-            resize();
+        if (size == MAX_CAPACITY) {
+            throw new IllegalStateException("Hashtable is full");
         }
-
-        int index = findIndex(key);
-        if (keys[index] == key) {
-            values[index] = value; // Update existing value
-        } else {
-            keys[index] = key;
-            values[index] = value;
-            size++;
+        int index = key % table.length;
+        while (table[index] != null && table[index].key != key) {
+            index = (index + 1) % table.length;
         }
+        table[index] = new Entry(key, value);
+        size++;
+        resizeIfNeeded();
     }
 
     @Override
     public Object search(int key) {
-        int index = findIndex(key);
-        return keys[index] == key ? values[index] : null;
+        int index = key % table.length;
+        while (table[index] != null) {
+            if (table[index].key == key) {
+                return table[index].value;
+            }
+            index = (index + 1) % table.length;
+        }
+        return null;
     }
 
     @Override
     public void remove(int key) {
-        int index = findIndex(key);
-        if (keys[index] == key) {
-            keys[index] = 0;
-            values[index] = null;
-            size--;
-
-            if (size != 0 && size <= capacity * LOAD_FACTOR_THRESHOLD) {
-                resize();
+        int index = key % table.length;
+        while (table[index] != null) {
+            if (table[index].key == key) {
+                table[index] = null;
+                size--;
+                break;
             }
+            index = (index + 1) % table.length;
         }
+        resizeIfNeeded();
     }
 
     @Override
@@ -65,48 +58,46 @@ public class HashtableOpen8to16Impl implements HashtableOpen8to16 {
 
     @Override
     public int[] keys() {
-        int[] nonNullKeys = new int[size];
-        int index = 0;
-        for (int key : keys) {
-            if (key != 0) {
-                nonNullKeys[index++] = key;
+        int[] keys = new int[size];
+        int keysIndex = 0;
+        for (Entry entry : table) {
+            if (entry != null) {
+                keys[keysIndex++] = entry.key;
             }
         }
-        return Arrays.copyOf(nonNullKeys, index);
+        return keys;
     }
 
-    private void resize() {
-        int newCapacity = capacity * 2;
-        if (size <= capacity / 4 && newCapacity >= INITIAL_CAPACITY * 2) {
-            newCapacity = capacity / 2;
+    private void resizeIfNeeded() {
+        if (size == table.length && table.length < MAX_CAPACITY) {
+            resize(table.length * 2);
+        } else if (size > 0 && size <= table.length / 4 && table.length > INITIAL_CAPACITY) {
+            resize(table.length / 2);
         }
+    }
 
-        int[] newKeys = new int[newCapacity];
-        Object[] newValues = new Object[newCapacity];
-
-        for (int i = 0; i < capacity; i++) {
-            if (keys[i] != 0) {
-                int newIndex = findIndex(keys[i], newCapacity);
-                newKeys[newIndex] = keys[i];
-                newValues[newIndex] = values[i];
+    private void resize(int newCapacity) {
+        Entry[] newTable = new Entry[newCapacity];
+        for (Entry entry : table) {
+            if (entry != null) {
+                int index = entry.key % newTable.length;
+                while (newTable[index] != null) {
+                    index = (index + 1) % newTable.length;
+                }
+                newTable[index] = entry;
             }
         }
-
-        capacity = newCapacity;
-        keys = newKeys;
-        values = newValues;
+        table = newTable;
     }
 
-    private int findIndex(int key) {
-        return findIndex(key, capacity);
-    }
+    private static class Entry {
+        final int key;
+        Object value;
 
-    private int findIndex(int key, int capacity) {
-        int index = key % capacity;
-        while (keys[index] != 0 && keys[index] != key) {
-            index = (index + 1) % capacity;
+        Entry(int key, Object value) {
+            this.key = key;
+            this.value = value;
         }
-        return index;
     }
 
     public static HashtableOpen8to16 getInstance() {
